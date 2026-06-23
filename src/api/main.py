@@ -3,12 +3,14 @@ FastAPI Backend for FinVeritas Contabolsa
 Real endpoints using the domain service.
 """
 
+import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from decimal import Decimal
 from typing import List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -16,6 +18,12 @@ from ..application.finveritas_service import FinVeritasService
 from ..domain.journal import JournalLine
 from ..infrastructure.database import get_db_session, init_db
 from ..infrastructure.event_repository import SQLAlchemyEventRepository
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+logger = logging.getLogger("finveritas.api")
 
 # ── Singleton in-memory service (avoids state loss between requests) ──────────
 _in_memory_service: Optional[FinVeritasService] = None
@@ -37,14 +45,17 @@ def get_service() -> FinVeritasService:
     return _get_in_memory_service()
 
 
+APP_VERSION = "1.0.0"
+
+
 # ── Lifespan (replaces deprecated @app.on_event) ─────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    logger.info("FinVeritas API starting (version=%s)", APP_VERSION)
     yield
+    logger.info("FinVeritas API shutting down")
 
-
-APP_VERSION = "1.0.0"
 
 app = FastAPI(
     title="FinVeritas Contabolsa API",
@@ -60,6 +71,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    logger.info(
+        "%s %s - %s - %.2fms",
+        request.method,
+        request.url.path,
+        response.status_code,
+        elapsed_ms,
+    )
+    return response
 
 
 # ── Pydantic request models ───────────────────────────────────────────────────
