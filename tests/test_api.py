@@ -16,6 +16,9 @@ def test_health():
     data = response.json()
     assert data["status"] == "ok"
     assert "finveritas" in data["service"]
+    assert "version" in data
+    assert data["journal"]["chain_valid"] is True
+    assert isinstance(data["journal"]["entry_count"], int)
 
 
 def test_journal_entry_and_solvency():

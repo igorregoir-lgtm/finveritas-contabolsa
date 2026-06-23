@@ -44,10 +44,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
+APP_VERSION = "1.0.0"
+
 app = FastAPI(
     title="FinVeritas Contabolsa API",
     description="Sistema de contabilidade padrão B3 com anti-fraude ironclad",
-    version="1.0.0",
+    version=APP_VERSION,
     lifespan=lifespan,
 )
 
@@ -91,8 +93,17 @@ class StressRequest(BaseModel):
 
 # ── Core endpoints ────────────────────────────────────────────────────────────
 @app.get("/health")
-def health():
-    return {"status": "ok", "service": "finveritas-contabolsa"}
+def health(service: FinVeritasService = Depends(get_service)):
+    journal = service.get_journal()
+    return {
+        "status": "ok",
+        "service": "finveritas-contabolsa",
+        "version": APP_VERSION,
+        "journal": {
+            "entry_count": journal.entry_count,
+            "chain_valid": journal.verify_integrity(),
+        },
+    }
 
 
 @app.post("/journal/entry")
