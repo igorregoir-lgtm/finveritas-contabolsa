@@ -94,7 +94,7 @@ class StressRequest(BaseModel):
 # ── Core endpoints ────────────────────────────────────────────────────────────
 @app.get("/health")
 def health(service: FinVeritasService = Depends(get_service)):
-    journal = service.get_journal()
+    journal = service.journal
     return {
         "status": "ok",
         "service": "finveritas-contabolsa",
