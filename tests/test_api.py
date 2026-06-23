@@ -3,7 +3,6 @@ API contract tests for FinVeritas Contabolsa.
 Covers health, journal entries, solvency, fiscal import, fraud log, and consolidation.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 from src.api.main import app
@@ -59,7 +58,14 @@ def test_fiscal_import():
 
 def test_fraud_log():
     # Trigger a high-value action to generate a fraud log entry
-    client.post("/fiscal/import", json={"pix": {"amount": 200000.0, "counterparty": "X", "description": "Big"}, "nfe": None, "actor": "pytest"})
+    client.post(
+        "/fiscal/import",
+        json={
+            "pix": {"amount": 200000.0, "counterparty": "X", "description": "Big"},
+            "nfe": None,
+            "actor": "pytest",
+        },
+    )
     r = client.get("/fraud-log")
     assert r.status_code == 200
     data = r.json()
@@ -91,3 +97,43 @@ def test_what_if():
     client.post("/consolidation/load-group")
     r = client.post("/consolidation/what-if", json={"interco_loan_delta_m": 1.0, "ebitda_multiplier": 1.1})
     assert r.status_code == 200, r.text
+
+
+def test_export_to_bank():
+    r = client.post("/export")
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["verified"] is True
+    assert data["format"] == "pdf+json"
+    assert data["pdf_path"]
+
+
+def test_stress_test():
+    client.post("/consolidation/load-group")
+    r = client.post("/consolidation/stress", json={"stress_factor": 0.2})
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert "stressed_covenants" in data
+    assert "stressed_metrics" in data
+
+
+def test_covenant_trends():
+    r = client.get("/consolidation/trends")
+    assert r.status_code == 200, r.text
+    assert isinstance(r.json(), list)
+
+
+def test_anomaly_detection():
+    r = client.get("/consolidation/anomalies")
+    assert r.status_code == 200, r.text
+    assert isinstance(r.json(), list)
+
+
+def test_export_bank_pack():
+    client.post("/consolidation/load-group")
+    r = client.post("/consolidation/export-bank-pack")
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert "covenants" in data
+    assert "elims_count" in data
+    assert "explain_count" in data

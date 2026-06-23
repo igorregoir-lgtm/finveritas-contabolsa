@@ -1,6 +1,8 @@
 from decimal import Decimal
+
 from src.domain.journal import Journal, JournalLine
 from src.domain.ratio_engine import RatioEngine
+
 
 def test_journal_double_entry_and_hash_chain():
     j = Journal()
