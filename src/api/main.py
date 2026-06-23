@@ -5,6 +5,7 @@ Real endpoints using the domain service.
 
 import logging
 import os
+import signal
 import time
 from contextlib import asynccontextmanager
 from decimal import Decimal
@@ -63,6 +64,15 @@ app = FastAPI(
     version=APP_VERSION,
     lifespan=lifespan,
 )
+
+
+def _handle_signal(signum: int, frame):
+    logger.info("Received signal %s, shutting down gracefully", signal.Signals(signum).name)
+    raise SystemExit(0)
+
+
+signal.signal(signal.SIGTERM, _handle_signal)
+signal.signal(signal.SIGINT, _handle_signal)
 
 app.add_middleware(
     CORSMiddleware,
