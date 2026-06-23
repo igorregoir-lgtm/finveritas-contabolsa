@@ -22,6 +22,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Lint with ruff
+        run: ruff check src/ app.py
+
+      - name: Typecheck with mypy
+        run: mypy src/
+
       - name: Run tests
         run: pytest tests/ -v
 
