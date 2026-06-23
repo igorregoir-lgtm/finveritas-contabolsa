@@ -45,7 +45,7 @@ def tests(session: nox.Session) -> None:
     """Run the test suite with pytest-cov."""
     session.install("-r", "requirements.txt")
     session.run(
-        "pytest", "tests/", "-q", "--cov=src", "--cov-report=term", "--cov-fail-under=85"
+        "pytest", "tests/", "-q", "--cov=src", "--cov-report=term", "--cov-fail-under=90"
     )
 
 

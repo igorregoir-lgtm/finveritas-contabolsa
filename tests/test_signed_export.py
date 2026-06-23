@@ -88,3 +88,34 @@ def test_pdf_generation_directly(sample_card: SolvencyCard):
     assert os.path.getsize(path) > 0
 
     os.remove(path)
+
+
+def test_generate_group_credit_memo(sample_card: SolvencyCard):
+    exporter = SignedExporter()
+    covenants = [
+        {
+            "code": "LEV-01",
+            "observed_value": Decimal("2.56"),
+            "threshold": Decimal("3.0"),
+            "headroom": Decimal("0.44"),
+            "status": "PASS",
+        }
+    ]
+    consol_data = {
+        "total_revenue_external": Decimal("1000000"),
+        "ic_eliminated_loan": Decimal("5000000"),
+        "ic_eliminated_arap": Decimal("7000000"),
+    }
+    path = exporter.generate_group_credit_memo(
+        group_name="Allla Group",
+        consol_data=consol_data,
+        covenants=covenants,
+        elims_count=2,
+        root_hash="ROOT" * 16,
+        explains_count=4,
+    )
+
+    assert os.path.exists(path)
+    assert os.path.getsize(path) > 0
+
+    os.remove(path)

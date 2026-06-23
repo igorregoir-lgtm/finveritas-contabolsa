@@ -1,7 +1,7 @@
 # FinVeritas Contabolsa
 
 [![CI](https://github.com/igorregoir-lgtm/finveritas-contabolsa/actions/workflows/ci.yml/badge.svg)](https://github.com/igorregoir-lgtm/finveritas-contabolsa/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-strict-blue)](frontend/)
 
@@ -41,14 +41,14 @@ python -m nox
 make check
 ```
 
-A `check` executa: **lint** (`ruff`), **typecheck** (`mypy`), **security** (`bandit`, `pip-audit`), **tests** (`pytest` com 85% de cobertura mínima), **frontend build** (`tsc` + `vite build`) e **docker build** (via CI).
+A `check` executa: **lint** (`ruff`), **typecheck** (`mypy`), **security** (`bandit`, `pip-audit`), **tests** (`pytest` com 90% de cobertura mínima), **frontend build** (`tsc` + `vite build`) e **docker build** (via CI).
 
 ## 📊 Quality metrics atuais
 
 | Métrica | Valor |
 |---|---|
-| Testes | 30 |
-| Cobertura | 89% |
+| Testes | 31 |
+| Cobertura | 92% |
 | Lint | ✅ pass |
 | Typecheck | ✅ pass |
 | Bandit | ✅ 0 issues |

@@ -28,7 +28,7 @@ This executes, in isolated virtual environments:
 1. `ruff check src/ app.py tests/`
 2. `mypy src/`
 3. `bandit -r src/ -ll -ii` + `pip-audit --requirement requirements.txt`
-4. `pytest tests/ --cov=src --cov-fail-under=85`
+4. `pytest tests/ --cov=src --cov-fail-under=90`
 5. `cd frontend && npx tsc --noEmit && npm run build`
 
 If you do not have Node, you can run the backend-only gate:
