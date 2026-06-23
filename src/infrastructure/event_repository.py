@@ -22,10 +22,10 @@ class EventRepository(ABC):
 
 
 class InMemoryEventRepository(EventRepository):
-    def __init__(self):
+    def __init__(self) -> None:
         self._events: List[AccountingEvent] = []
 
-    def save_event(self, event: AccountingEvent):
+    def save_event(self, event: AccountingEvent) -> None:
         self._events.append(event)
 
     def load_events(self) -> List[AccountingEvent]:

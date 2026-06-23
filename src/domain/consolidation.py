@@ -244,7 +244,7 @@ class MatchingEngine:
 class EliminationEngine:
     """Full elimination per ELIMINATION-RULES.md - produces traceable entries"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.rules: Dict[str, EliminationRule] = {
             "LOAN-IC-01": EliminationRule(
                 "LOAN-IC-01", "Elim IC Loan Principal", EliminationType.IC_LOAN_PRINCIPAL, "by_contract"
@@ -282,7 +282,7 @@ class EliminationEngine:
 class CovenantEngine:
     """Covenants with scopes + policies from COVENANT-RULES-CATALOG"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.defs: List[CovenantDefinition] = [
             CovenantDefinition(
                 "LEV-01",
@@ -389,7 +389,7 @@ class ExplainEngine:
 class ConsolidationOrchestrator:
     """Execution Plane core + hooks to Intelligence. The heart of the 'what the hell' demo."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.matching = MatchingEngine()
         self.elim = EliminationEngine()
         self.covenant = CovenantEngine()
@@ -546,15 +546,19 @@ class ConsolidationOrchestrator:
         self._last_elims = elims
 
         # 3. Consolidated metrics (simplified post-elim)
-        external_revenue = sum(
-            line.debit
-            for line in all_lines
-            if not line.is_intercompany
-            and ("Receita" in line.account or "3.9" in line.account or "Venda externa" in line.description)
+        external_revenue = Decimal(
+            str(
+                sum(
+                    line.debit
+                    for line in all_lines
+                    if not line.is_intercompany
+                    and ("Receita" in line.account or "3.9" in line.account or "Venda externa" in line.description)
+                )
+            )
         )
         ebitda_approx = Decimal("1250000")
         net_debt_approx = Decimal("3200000")  # after elims loans gone
-        metrics = {
+        metrics: Dict[str, Decimal] = {
             "net_debt_ebitda": net_debt_approx / ebitda_approx,
             "external_revenue": external_revenue,
         }
