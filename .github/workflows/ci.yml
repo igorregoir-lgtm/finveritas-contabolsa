@@ -28,6 +28,12 @@ jobs:
       - name: Typecheck with mypy
         run: mypy src/
 
+      - name: Run bandit security scan
+        run: bandit -r src/ -ll -ii
+
+      - name: Audit dependencies with pip-audit
+        run: pip-audit --requirement requirements.txt
+
       - name: Run tests
         run: pytest tests/ -v
 

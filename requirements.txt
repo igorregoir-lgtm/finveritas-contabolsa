@@ -13,3 +13,5 @@ httpx  # for testing API
 ruff
 mypy
 pre-commit
+bandit
+pip-audit
