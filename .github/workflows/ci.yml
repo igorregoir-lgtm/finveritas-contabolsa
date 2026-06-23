@@ -45,6 +45,11 @@ jobs:
           cd frontend
           npm ci
 
+      - name: Audit frontend dependencies
+        run: |
+          cd frontend
+          npm audit --audit-level=moderate
+
       - name: Typecheck
         run: |
           cd frontend
