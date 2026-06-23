@@ -41,7 +41,7 @@ python -m nox
 make check
 ```
 
-A `check` executa: **lint** (`ruff`), **typecheck** (`mypy`), **security** (`bandit`, `pip-audit`), **tests** (`pytest` com 90% de cobertura mínima), **frontend build** (`tsc` + `vite build`) e **docker build** (via CI).
+A `check` executa: **lint** (`ruff`), **typecheck** (`mypy`), **security** (`bandit`, `pip-audit`, `detect-secrets`), **tests** (`pytest` com 90% de cobertura mínima), **frontend build** (`tsc` + `vite build`) e **docker build** (via CI). Mutation testing (`mutmut`) roda no CI em Ubuntu.
 
 ## 📊 Quality metrics atuais
 
@@ -49,11 +49,13 @@ A `check` executa: **lint** (`ruff`), **typecheck** (`mypy`), **security** (`ban
 |---|---|
 | Testes | 33 |
 | Cobertura | 93% |
+| Mutation testing | ✅ CI job |
 | Lint | ✅ pass |
 | Typecheck | ✅ pass |
 | Bandit | ✅ 0 issues |
 | pip-audit | ✅ 0 vulnerabilities |
 | npm audit | ✅ 0 vulnerabilities |
+| detect-secrets | ✅ baseline pass |
 
 ## 🏦 Domínio de aplicação
 
@@ -78,7 +80,27 @@ python -m pytest tests/ -q
 python -m pytest tests/ --cov=src --cov-report=term
 ```
 
-A suíte inclui testes de contrato de API, testes de repositório (in-memory e SQLAlchemy), testes de exportação PDF, testes de hash chain e testes property-based com Hypothesis.
+A suíte inclui testes de contrato de API, testes de repositório (in-memory e SQLAlchemy), testes de exportação PDF, testes de hash chain e testes property-based com Hypothesis. Mutation testing é executado no CI para validar que os testes realmente matam mutações de código.
+
+## 🪝 Pre-commit hooks
+
+```powershell
+pre-commit install
+pre-commit run --all-files
+```
+
+Os hooks incluem: verificação de YAML/JSON, detect-secrets, ruff, ruff-format, mypy, bandit, pip-audit e pytest.
+
+## 🏛️ Architecture Decision Records
+
+Decisões arquiteturais significativas estão documentadas em `adr/`:
+
+- [ADR 0001](adr/0001-record-architecture-decisions.md) — Registro de decisões
+- [ADR 0002](adr/0002-event-sourcing-with-hash-chain.md) — Event sourcing com hash chain
+- [ADR 0003](adr/0003-anti-fraud-four-eyes-policy.md) — Política anti-fraude four-eyes
+- [ADR 0004](adr/0004-fastapi-react-layered-architecture.md) — Arquitetura em camadas
+- [ADR 0005](adr/0005-postgresql-sqlalchemy-persistence.md) — Persistência PostgreSQL
+- [ADR 0006](adr/0006-nox-cross-platform-quality-gate.md) — Quality gate cross-platform
 
 ## 🐳 Docker
 
