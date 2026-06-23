@@ -10,6 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finveritas -d finveritas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   api:
     build:
@@ -17,11 +22,17 @@ services:
       dockerfile: Dockerfile
     command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://finveritas:demo@db:5432/finveritas
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
 
   streamlit:
     build:
@@ -29,7 +40,8 @@ services:
       dockerfile: Dockerfile
     command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - "8501:8501"
     environment:

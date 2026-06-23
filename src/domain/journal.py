@@ -4,17 +4,19 @@ FinVeritas Journal with Event Sourcing + Hash Chain (immutable)
 
 import hashlib
 import json
-from dataclasses import dataclass, asdict, field
+import uuid
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import List, Optional, Dict, Any
 from enum import Enum
-import uuid
+from typing import Any, Dict, List, Optional
+
 
 class EventType(str, Enum):
     JOURNAL_ENTRY_POSTED = "JOURNAL_ENTRY_POSTED"
     ADJUSTMENT_POSTED = "ADJUSTMENT_POSTED"
     FISCAL_IMPORT = "FISCAL_IMPORT"
+
 
 @dataclass(frozen=True)
 class AccountingEvent:
@@ -26,7 +28,7 @@ class AccountingEvent:
     current_hash: str = field(init=False)
 
     def __post_init__(self):
-        object.__setattr__(self, 'current_hash', self._compute_hash())
+        object.__setattr__(self, "current_hash", self._compute_hash())
 
     def _compute_hash(self) -> str:
         data = {
@@ -41,8 +43,9 @@ class AccountingEvent:
 
     def to_dict(self):
         d = asdict(self)
-        d['current_hash'] = self.current_hash
+        d["current_hash"] = self.current_hash
         return d
+
 
 @dataclass
 class JournalLine:
@@ -54,6 +57,7 @@ class JournalLine:
     def __post_init__(self):
         if self.debit < 0 or self.credit < 0:
             raise ValueError("Debits and credits must be non-negative")
+
 
 class Journal:
     """Event-sourced immutable journal with hash chain verification."""
@@ -69,7 +73,7 @@ class Journal:
         for ev in self._events:
             if ev.previous_hash != prev:
                 raise ValueError(f"Hash chain broken at event {ev.id}")
-            if ev.current_hash != ev._compute_hash():  # type: ignore
+            if ev.current_hash != ev._compute_hash():
                 raise ValueError(f"Event hash tampered: {ev.id}")
             prev = ev.current_hash
 
@@ -78,23 +82,19 @@ class Journal:
         return self._events[-1].current_hash if self._events else "GENESIS"
 
     def post_entry(
-        self,
-        description: str,
-        lines: List[JournalLine],
-        source: str = "manual",
-        metadata: Optional[Dict] = None
+        self, description: str, lines: List[JournalLine], source: str = "manual", metadata: Optional[Dict] = None
     ) -> AccountingEvent:
         if not lines:
             raise ValueError("At least one line required")
 
-        total_debit = sum(l.debit for l in lines)
-        total_credit = sum(l.credit for l in lines)
+        total_debit = sum(line.debit for line in lines)
+        total_credit = sum(line.credit for line in lines)
         if total_debit != total_credit:
             raise ValueError("Double entry violation: debits != credits")
 
         payload = {
             "description": description,
-            "lines": [asdict(l) for l in lines],
+            "lines": [asdict(line) for line in lines],
             "total": str(total_debit),
             "source": source,
             "metadata": metadata or {},
@@ -118,7 +118,11 @@ class Journal:
         for ev in self._events:
             for line in ev.payload.get("lines", []):
                 acc = line["account"]
-                balances[acc] = balances.get(acc, Decimal(0)) + Decimal(str(line.get("debit", 0))) - Decimal(str(line.get("credit", 0)))
+                balances[acc] = (
+                    balances.get(acc, Decimal(0))
+                    + Decimal(str(line.get("debit", 0)))
+                    - Decimal(str(line.get("credit", 0)))
+                )
         return balances
 
     def verify_integrity(self) -> bool:

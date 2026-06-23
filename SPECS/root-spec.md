@@ -1,9 +1,15 @@
-# FinVeritas Contabolsa — Root Specification (SDD)
+# FinStatement Pro (FinVeritas Contabolsa) — FULL Root Specification (SDD)
+
+**Local:** C:\DEV\allla\Clara Contábil\finveritas-contabolsa (dentro do projeto Clara Contábil)
+
+> Complete re-implementation per Plano de Arquitetura (3 Planes, 7 Bounded Contexts, 6 Workspaces, full group consolidation, eliminations, covenants with scopes, explainability with lineage+hashes, ironclad anti-fraud, golden harness, ISO 25010).
 
 ## Vision
-FinVeritas transforma **qualquer empresa** em um padrão equivalente a companhia aberta listada na B3, para fins de análise de crédito, risco e solvência por bancos e instituições financeiras.
+FinStatement Pro transforma a contabilidade de qualquer empresa em **credit-grade** (padrão B3 / public company) para analistas de crédito de bancos/FIDC, investidores e founders. 
 
-O sistema produz indicadores confiáveis, auditáveis e à prova de manipulação.
+Entrega: consolidação multi-entidade com eliminações automáticas rastreáveis, covenants por escopo, explicabilidade total de qualquer número até o lançamento + hash imutável, e guardrails antifraude intransponíveis. 
+
+Tudo spec-driven, harness-driven, ISO 25010 mapped.
 
 ## Core Principles (Non-negotiable)
 - **Imutabilidade total**: Todo lançamento contábil é imutável. Ajustes geram novos registros com referência ao anterior.
@@ -112,3 +118,15 @@ O sistema produz indicadores confiáveis, auditáveis e à prova de manipulaçã
 ---
 
 **Esta é a fonte canônica.** Todo código deve traçar de volta para esta spec.
+
+## Elevated "What The Hell" Capabilities (Iteration 3 - Research-Driven)
+From web research on OneStream (Sensible AI), Nominal (AI-native consol), Workiva, CCH Tagetik, Oracle, Moody's/Hebbia (covenant AI), IFRS10/B3:
+- **AI Features**: Anomaly detection (outliers/large interco - MindBridge style), covenant stress testing (Basel/credit risk), auto-narratives.
+- **Advanced Risk/Covenants**: Stress scenarios, early warnings, IFRS 10 control sim (NCI/silos).
+- **Viz**: Rich clickable D3 network graphs (ownership + elim flows with lineage) in Streamlit + HTML.
+- **Regulatory**: IFRS 10 full (control, variable returns), B3/CVM notes, enhanced audit.
+- **Harness/Scenarios**: Expanded with AI anomalies, IFRS pressure, multi-period stress, fraud authority cases, invariants.
+- **Demo/Enterprise**: Standalone HTML now full JS AI engines + D3 + stress/anomaly; real PDF; API stubs.
+- Still 3-planes, immutable hashes, golden harness (now 7+ pressures). For analysts: AI proof+graphs; founders: play stress/what-if; banks: IFRS/compliance/scale.
+
+All in loop, verified. Repo scaled to next enterprise "what the hell" level.

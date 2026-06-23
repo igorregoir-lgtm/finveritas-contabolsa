@@ -4,12 +4,13 @@ Stores AccountingEvent as JSON for simplicity (Event Sourcing style).
 """
 
 import os
-from sqlalchemy import create_engine, Column, String, DateTime, JSON, Integer
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from datetime import datetime, timezone
+
+from sqlalchemy import JSON, Column, DateTime, String, create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 Base = declarative_base()
+
 
 class EventRecord(Base):
     __tablename__ = "accounting_events"
@@ -20,13 +21,16 @@ class EventRecord(Base):
     event_type = Column(String, nullable=False)
     payload = Column(JSON, nullable=False)
     current_hash = Column(String, nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
 
 _engine = None
 _SessionLocal = None
 
+
 def get_database_url() -> str:
     return os.getenv("DATABASE_URL", "postgresql://finveritas:demo@localhost:5432/finveritas")
+
 
 def init_db():
     global _engine, _SessionLocal
@@ -35,6 +39,7 @@ def init_db():
     Base.metadata.create_all(_engine)
     _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
     print("Database initialized")
+
 
 def get_db_session():
     if _SessionLocal is None:

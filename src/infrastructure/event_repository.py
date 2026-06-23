@@ -3,11 +3,13 @@ Event Repository for persistence (SQLAlchemy + in-memory fallback)
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
+
 from sqlalchemy.orm import Session
 
 from ..domain.journal import AccountingEvent, EventType
 from .database import EventRecord
+
 
 class EventRepository(ABC):
     @abstractmethod
@@ -18,6 +20,7 @@ class EventRepository(ABC):
     def load_events(self) -> List[AccountingEvent]:
         pass
 
+
 class InMemoryEventRepository(EventRepository):
     def __init__(self):
         self._events: List[AccountingEvent] = []
@@ -27,6 +30,7 @@ class InMemoryEventRepository(EventRepository):
 
     def load_events(self) -> List[AccountingEvent]:
         return list(self._events)
+
 
 class SQLAlchemyEventRepository(EventRepository):
     def __init__(self, db: Session):
@@ -47,6 +51,7 @@ class SQLAlchemyEventRepository(EventRepository):
     def load_events(self) -> List[AccountingEvent]:
         records = self.db.query(EventRecord).order_by(EventRecord.timestamp).all()
         events = []
+        prev_hash = "GENESIS"
         for r in records:
             ev = AccountingEvent(
                 id=r.id,
@@ -55,6 +60,14 @@ class SQLAlchemyEventRepository(EventRepository):
                 event_type=EventType(r.event_type),
                 payload=r.payload,
             )
-            # current_hash is computed, but we set it to match
+            # Verify chain integrity on load — catches DB tampering
+            if ev.previous_hash != prev_hash:
+                raise ValueError(
+                    f"Hash chain broken in DB at event {ev.id}: "
+                    f"expected prev={prev_hash[:16]}… got {ev.previous_hash[:16]}…"
+                )
+            if ev.current_hash != r.current_hash:
+                raise ValueError(f"Event hash mismatch in DB at event {ev.id}: possible tampering")
+            prev_hash = ev.current_hash
             events.append(ev)
         return events

@@ -1,0 +1,22 @@
+[tool.mypy]
+python_version = "3.12"
+mypy_path = ["src"]
+explicit_package_bases = true
+namespace_packages = true
+ignore_missing_imports = true
+no_strict_optional = true
+warn_unused_ignores = true
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

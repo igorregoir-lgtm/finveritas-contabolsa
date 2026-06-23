@@ -8,10 +8,12 @@ from decimal import Decimal
 from enum import Enum
 from typing import List, Protocol
 
+
 class Decision(str, Enum):
     ALLOW = "ALLOW"
     BLOCK = "BLOCK"
     REVIEW = "REVIEW"
+
 
 @dataclass
 class FraudAttempt:
@@ -22,9 +24,24 @@ class FraudAttempt:
     reason: str
     context: dict
 
+
 class FraudLog(Protocol):
-    def append(self, attempt: FraudAttempt): ...
+    def append(self, attempt: FraudAttempt) -> None: ...
     def get_all(self) -> List[FraudAttempt]: ...
+
+
+class InMemoryFraudLog:
+    """Default in-memory implementation of FraudLog. Lives in domain alongside the protocol."""
+
+    def __init__(self) -> None:
+        self._attempts: List[FraudAttempt] = []
+
+    def append(self, attempt: FraudAttempt) -> None:
+        self._attempts.append(attempt)
+
+    def get_all(self) -> List[FraudAttempt]:
+        return list(self._attempts)
+
 
 class AntiFraudPolicy:
     HIGH_VALUE = Decimal("100000")
@@ -32,8 +49,15 @@ class AntiFraudPolicy:
     def __init__(self, log: FraudLog):
         self.log = log
 
-    def evaluate(self, action: str, amount: Decimal | None, has_signature: bool,
-                 chain_valid: bool, velocity_high: bool, actor: str = "system") -> Decision:
+    def evaluate(
+        self,
+        action: str,
+        amount: Decimal | None,
+        has_signature: bool,
+        chain_valid: bool,
+        velocity_high: bool,
+        actor: str = "system",
+    ) -> Decision:
 
         reasons = []
 
@@ -59,7 +83,7 @@ class AntiFraudPolicy:
             amount=amount,
             decision=decision,
             reason="; ".join(reasons),
-            context={"has_signature": has_signature, "chain_valid": chain_valid}
+            context={"has_signature": has_signature, "chain_valid": chain_valid},
         )
         self.log.append(attempt)
         return decision
