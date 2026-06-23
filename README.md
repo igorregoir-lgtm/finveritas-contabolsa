@@ -1,89 +1,105 @@
 # FinVeritas Contabolsa
 
-**Localização:** `C:\DEV\allla\Clara Contábil\finveritas-contabolsa`
+[![CI](https://github.com/igorregoir-lgtm/finveritas-contabolsa/actions/workflows/ci.yml/badge.svg)](https://github.com/igorregoir-lgtm/finveritas-contabolsa/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen)](tests/)
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-strict-blue)](frontend/)
 
-Sistema completo de contabilidade padrão B3 para análise de bancos (crédito, risco, solvência).
+Sistema completo de contabilidade padrão B3 para análise de bancos (crédito, risco, solvência), com arquitetura em camadas, event sourcing imutável com hash chain, anti-fraude four-eyes, e consolidação intercompany com explicabilidade e covenants escopados.
 
-> Este artefato faz parte do projeto Clara Contábil.
+> Este artefato faz parte do projeto **Clara Contábil**.
 
-## Como rodar (todos os 4 itens implementados)
+## 🚀 Quick start
 
-### 1. Streamlit UI (recomendado para demo rápida)
 ```powershell
-cd "C:\DEV\allla\Clara Contábil\finveritas-contabolsa"
-pip install -r requirements.txt
-make run
-# ou
+# Windows / PowerShell (sem make instalado)
+python -m pip install -r requirements.txt
 streamlit run app.py
+
+# Linux / macOS / WSL (com make)
+make run
 ```
 
-### 2. FastAPI Backend
+## 🛠️ Como rodar os serviços
+
+| Serviço | Comando rápido | URL |
+|---|---|---|
+| Streamlit UI | `streamlit run app.py` | http://localhost:8501 |
+| FastAPI backend | `uvicorn src.api.main:app --reload --port 8000` | http://localhost:8000 |
+| React frontend | `cd frontend && npm install && npm run dev` | http://localhost:5173 |
+| Docker + Postgres | `docker compose up --build -d` | API 8000, Streamlit 8501 |
+
+## ✅ Tesla-level local gate
+
+Rode o mesmo pipeline que o CI em qualquer sistema operacional:
+
 ```powershell
-make run-api
-# ou
-uvicorn src.api.main:app --reload --port 8000
+# Com nox (recomendado, cross-platform)
+python -m nox
+
+# Com make (Linux / macOS / WSL)
+make check
 ```
 
-### 3. React Frontend
+A `check` executa: **lint** (`ruff`), **typecheck** (`mypy`), **security** (`bandit`, `pip-audit`), **tests** (`pytest` com 85% de cobertura mínima), **frontend build** (`tsc` + `vite build`) e **docker build** (via CI).
+
+## 📊 Quality metrics atuais
+
+| Métrica | Valor |
+|---|---|
+| Testes | 30 |
+| Cobertura | 89% |
+| Lint | ✅ pass |
+| Typecheck | ✅ pass |
+| Bandit | ✅ 0 issues |
+| pip-audit | ✅ 0 vulnerabilities |
+| npm audit | ✅ 0 vulnerabilities |
+
+## 🏦 Domínio de aplicação
+
+- **Analista de crédito (banco/FIDC)**: prove alavancagem e covenants depois de eliminar ruído intercompany.
+- **Founder/Investor**: simule "e se" em intercompany/EBITDA e veja o impacto nos covenants em tempo real.
+- **Auditor**: rastreie cada número até o lançamento original e ao hash imutável que prova que nada foi adulterado.
+
+## 📁 Arquitetura
+
+```
+src/
+├── domain/          # Regras de negócio puras (journal, ratio engine, consolidação, anti-fraude)
+├── application/     # Serviços de aplicação (orquestração)
+├── api/             # FastAPI endpoints
+└── infrastructure/  # Banco, eventos, exportação assinada, simulador fiscal
+```
+
+## 🧪 Testes
+
 ```powershell
-cd frontend
-npm install
-npm run dev
+python -m pytest tests/ -q
+python -m pytest tests/ --cov=src --cov-report=term
 ```
-Acesse http://localhost:5173 (conecta ao FastAPI em 8000 via proxy)
 
-## The "WHAT THE HELL" Experience (next-level elevation)
+A suíte inclui testes de contrato de API, testes de repositório (in-memory e SQLAlchemy), testes de exportação PDF, testes de hash chain e testes property-based com Hypothesis.
 
-Run the Streamlit app and follow the top launcher:
+## 🐳 Docker
 
-1. Load the 3-entity golden interco group (loans + AR/AP + revenue inside the group).
-2. Run full consolidation → watch 5M loans + 7M AR/AP disappear from the consolidated view while external revenue stays.
-3. Try to "cheat" with a material adjustment → system blocks it with four-eyes/segregation message.
-4. Click into Crédito workspace → move the What-If sliders (interco loan size, EBITDA multiplier) → covenants and headroom recalculate live.
-5. Hit "Generate Full Credit Memo" → get a committee-ready formatted document with numbers, covenant status + headroom, explain narratives, root verification hashes.
-
-**For the Credit Analyst**: Headroom numbers, scope-aware covenants, one-click lineage to source lines + immutable hashes.
-**For the Founder/Investor**: Honest consolidated health + instant "what if we cleaned this up" simulator.
-**For the Auditor**: Everything is explainable and the hash chain would break on tampering.
-
-**NEXT-LEVEL (Iteration 3 - Internet Research Driven from OneStream, Nominal, Hebbia, IFRS leaders):**
-- AI anomaly detection + covenant stress testing (enterprise credit tools)
-- Rich interactive D3 ownership/elim graphs (clickable lineage) in Streamlit + HTML
-- Expanded harness with AI/IFRS/stress/fraud pressure cases
-- IFRS10/B3 regulatory depth, enhanced compliance
-- Standalone HTML: full JS AI engines, D3, stress/anomaly sims
-- All previous + real outputs scale impressively
-
-Run: `python -m harness.golden_consolidation` (all cases pass); `streamlit run app.py` (new AI/stress/D3 buttons); open HTML demo.
-
-Golden harness stays green. Repo at true next-level "what the hell" for target users.
-
-This is the level where people say "WHAT THE HELL, this is actually production-grade for banks/FIDC".
-
-### 4. Tudo com Docker + Postgres
 ```powershell
-make docker
-# Acesse:
-# - API: http://localhost:8000
-# - Streamlit: http://localhost:8501
-# - React: http://localhost:5173 (adicione manualmente ou exponha)
+docker compose up --build -d
 ```
 
-## Testes
-```powershell
-make test
-```
+- API: http://localhost:8000
+- Streamlit: http://localhost:8501
 
-## Principais Features Atendidas
-- ✅ Card gigante de solvência + semáforos + tooltips
-- ✅ Todos indicadores (Liquidez, Solvência com Altman Z + DSCR, Rentabilidade, Score 0-100)
-- ✅ Journal imutável com Hash Chain + Event Sourcing
-- ✅ Anti-Fraude Ironclad (bloqueio automático + logs eternos)
-- ✅ Import Pix + NF-e com guardrails
-- ✅ Export real para Banco (PDF gerado com ReportLab + JSON assinado)
-- ✅ FastAPI real + React moderno
-- ✅ Persistência PostgreSQL via SQLAlchemy
-- ✅ Docker-ready + ISO 25010 mindset
-- ✅ Traceabilidade completa até o lançamento original
+## 📝 Principais features
 
-Construído com SDD (Spec-Driven Development). Specs em /SPECS são a fonte da verdade.
+- ✅ Solvency card gigante com score 0-100, semáforos e tooltips
+- ✅ Indicadores de liquidez, solvência (Altman Z + DSCR), rentabilidade
+- ✅ Journal imutável com hash chain e event sourcing
+- ✅ Anti-fraude four-eyes com logs eternos
+- ✅ Importação Pix + NF-e com guardrails
+- ✅ Exportação real para banco (PDF + JSON assinado)
+- ✅ FastAPI + React + Vite + TypeScript strict
+- ✅ PostgreSQL via SQLAlchemy
+- ✅ Docker-ready
+- ✅ Rastreabilidade completa até o lançamento original
+
+Construído com **SDD** (Spec-Driven Development). Specs em `/SPECS` são a fonte da verdade.
