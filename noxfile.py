@@ -50,13 +50,6 @@ def tests(session: nox.Session) -> None:
     )
 
 
-@nox.session(python=["3.12"])
-def mutation(session: nox.Session) -> None:
-    """Run mutation testing with mutmut."""
-    session.install("-r", "requirements.txt")
-    session.run("mutmut", "run", "--paths-to-mutate", "src/", "--runner", "python -m pytest tests/ -q")
-
-
 @nox.session
 def frontend(session: nox.Session) -> None:
     """Typecheck and build the frontend."""

@@ -70,3 +70,23 @@ jobs:
 
       - name: Build Docker images
         run: docker compose build
+
+  mutation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run mutation testing
+        run: |
+          mutmut run --paths-to-mutate src/ --runner "python -m pytest tests/ -q"
+          mutmut results

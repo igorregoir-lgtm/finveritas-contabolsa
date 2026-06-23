@@ -25,9 +25,9 @@ python -m nox
 
 This executes, in isolated virtual environments:
 
-1. `ruff check src/ app.py tests/`
+1. `ruff check src/ app.py tests/ noxfile.py`
 2. `mypy src/`
-3. `bandit -r src/ -ll -ii` + `pip-audit --requirement requirements.txt`
+3. `bandit -r src/ -ll -ii` + `pip-audit --requirement requirements.txt` + `detect-secrets scan --baseline .secrets.baseline`
 4. `pytest tests/ --cov=src --cov-fail-under=90`
 5. `cd frontend && npx tsc --noEmit && npm run build`
 
@@ -36,6 +36,18 @@ If you do not have Node, you can run the backend-only gate:
 ```powershell
 python -m nox -s ci
 ```
+
+## Mutation testing
+
+On Linux or WSL, run mutation testing to verify that the test suite actually
+catches semantic changes in the code:
+
+```bash
+mutmut run --paths-to-mutate src/ --runner "python -m pytest tests/ -q"
+mutmut results
+```
+
+This is also executed in CI on Ubuntu.
 
 ## Commit style
 
