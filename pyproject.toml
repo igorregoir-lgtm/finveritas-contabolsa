@@ -20,3 +20,9 @@ quote-style = "double"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.mutmut]
+paths_to_mutate = "src/"
+backup = false
+runner = "python -m pytest tests/ -q"
+tests_dir = "tests/"

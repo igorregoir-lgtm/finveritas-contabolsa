@@ -16,4 +16,5 @@ pre-commit
 bandit
 pip-audit
 detect-secrets
+mutmut
 nox

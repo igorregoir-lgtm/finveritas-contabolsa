@@ -22,7 +22,7 @@ def ci(session: nox.Session) -> None:
 def lint(session: nox.Session) -> None:
     """Run ruff on all Python sources."""
     session.install("ruff")
-    session.run("ruff", "check", "src/", "app.py", "tests/")
+    session.run("ruff", "check", "src/", "app.py", "tests/", "noxfile.py")
 
 
 @nox.session(python=["3.12"])
@@ -48,6 +48,13 @@ def tests(session: nox.Session) -> None:
     session.run(
         "pytest", "tests/", "-q", "--cov=src", "--cov-report=term", "--cov-fail-under=90"
     )
+
+
+@nox.session(python=["3.12"])
+def mutation(session: nox.Session) -> None:
+    """Run mutation testing with mutmut."""
+    session.install("-r", "requirements.txt")
+    session.run("mutmut", "run", "--paths-to-mutate", "src/", "--runner", "python -m pytest tests/ -q")
 
 
 @nox.session
