@@ -97,3 +97,19 @@ def test_sqlalchemy_repository_tampering_detected(db_session):
 
     with pytest.raises(ValueError, match="tampering"):
         repo.load_events()
+
+
+def test_sqlalchemy_repository_broken_chain_detected(db_session):
+    repo = SQLAlchemyEventRepository(db_session)
+    first = make_event("ev-1")
+    second = make_event("ev-2", previous_hash=first.current_hash)
+    repo.save_event(first)
+    repo.save_event(second)
+
+    # Break the previous_hash link of the second record
+    record = db_session.query(EventRecord).filter_by(id="ev-2").first()
+    record.previous_hash = "broken"
+    db_session.commit()
+
+    with pytest.raises(ValueError, match="Hash chain broken"):
+        repo.load_events()
