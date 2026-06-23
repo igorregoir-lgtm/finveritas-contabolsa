@@ -20,22 +20,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install nox
 
-      - name: Lint with ruff
-        run: ruff check src/ app.py
-
-      - name: Typecheck with mypy
-        run: mypy src/
-
-      - name: Run bandit security scan
-        run: bandit -r src/ -ll -ii
-
-      - name: Audit dependencies with pip-audit
-        run: pip-audit --requirement requirements.txt
-
-      - name: Run tests
-        run: pytest tests/ -v
+      - name: Run backend quality gate (nox)
+        run: python -m nox -s ci --non-interactive
 
       - name: Run golden harness
         run: python -m pytest tests/test_harness.py -v

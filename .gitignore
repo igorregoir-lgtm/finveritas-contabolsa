@@ -27,6 +27,7 @@ MANIFEST
 .coverage
 htmlcov/
 .tox/
+.nox/
 .venv/
 venv/
 ENV/

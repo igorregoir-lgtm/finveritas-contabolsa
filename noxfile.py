@@ -10,6 +10,15 @@ nox.options.sessions = ["lint", "typecheck", "security", "tests", "frontend"]
 
 
 @nox.session(python=["3.12"])
+def ci(session: nox.Session) -> None:
+    """Backend-only CI gate (no Node dependency)."""
+    session.notify("lint")
+    session.notify("typecheck")
+    session.notify("security")
+    session.notify("tests")
+
+
+@nox.session(python=["3.12"])
 def lint(session: nox.Session) -> None:
     """Run ruff on all Python sources."""
     session.install("ruff")
