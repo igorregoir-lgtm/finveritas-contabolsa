@@ -25,6 +25,9 @@ jobs:
       - name: Run backend quality gate (nox)
         run: python -m nox -s ci --non-interactive
 
+      - name: Scan for secrets
+        run: detect-secrets scan --baseline .secrets.baseline
+
       - name: Run golden harness
         run: python -m pytest tests/test_harness.py -v
 

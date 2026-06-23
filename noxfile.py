@@ -34,10 +34,11 @@ def typecheck(session: nox.Session) -> None:
 
 @nox.session(python=["3.12"])
 def security(session: nox.Session) -> None:
-    """Run bandit and pip-audit."""
-    session.install("bandit", "pip-audit")
+    """Run bandit, pip-audit, and detect-secrets."""
+    session.install("bandit", "pip-audit", "detect-secrets")
     session.run("bandit", "-r", "src/", "-ll", "-ii")
     session.run("pip-audit", "--requirement", "requirements.txt")
+    session.run("detect-secrets", "scan", "--baseline", ".secrets.baseline")
 
 
 @nox.session(python=["3.12"])

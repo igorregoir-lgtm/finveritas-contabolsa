@@ -15,4 +15,5 @@ mypy
 pre-commit
 bandit
 pip-audit
+detect-secrets
 nox
