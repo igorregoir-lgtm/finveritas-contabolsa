@@ -1,0 +1,1 @@
+# FinVeritas clean architecture
