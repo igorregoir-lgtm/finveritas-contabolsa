@@ -1,4 +1,4 @@
-.PHONY: install run run-api run-streamlit test lint typecheck frontend-check docker frontend check all
+.PHONY: install run run-api run-streamlit test test-cov lint typecheck security frontend-check docker frontend check all
 
 install:
 	pip install -r requirements.txt
@@ -15,14 +15,21 @@ run-streamlit:
 test:
 	pytest tests/ -q
 
+test-cov:
+	pytest tests/ --cov=src --cov-report=term
+
 lint:
-	ruff check src/ app.py --select E,W,F,I || true
+	ruff check src/ app.py tests/
 
 typecheck:
-	mypy src/ --ignore-missing-imports --no-strict-optional || true
+	mypy src/
+
+security:
+	bandit -r src/ -ll -ii
+	pip-audit --requirement requirements.txt
 
 frontend-check:
-	cd frontend && npm ci && npx tsc --noEmit && npm run build
+	cd frontend && npx tsc --noEmit && npm run build
 
 docker:
 	docker compose up --build -d
@@ -31,8 +38,8 @@ frontend:
 	cd frontend && npm install && npm run dev
 
 # Tesla-level local gate: run everything before pushing.
-check: lint typecheck test frontend-check
-	@echo "✅ All local checks passed"
+check: lint typecheck security test frontend-check
+	@echo "✅ All local Tesla-level checks passed"
 
 all: install check
 	@echo "✅ Project ready"
