@@ -52,3 +52,18 @@ def test_init_db_with_sqlite():
     assert session is not None
     session.close()
     database._engine.dispose()
+
+
+def test_get_db_session_with_sqlite():
+    import os
+
+    from src.infrastructure import database
+
+    os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+    database._SessionLocal = None
+    database._engine = None
+
+    session = next(database.get_db_session())
+    assert session is not None
+    session.close()
+    database._engine.dispose()
