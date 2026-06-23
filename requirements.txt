@@ -11,3 +11,4 @@ hypothesis
 httpx  # for testing API
 ruff
 mypy
+pre-commit
