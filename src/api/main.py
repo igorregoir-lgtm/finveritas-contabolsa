@@ -100,7 +100,7 @@ def health(service: FinVeritasService = Depends(get_service)):
         "service": "finveritas-contabolsa",
         "version": APP_VERSION,
         "journal": {
-            "entry_count": journal.entry_count,
+            "entry_count": len(journal.get_events()),
             "chain_valid": journal.verify_integrity(),
         },
     }
