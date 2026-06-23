@@ -1,7 +1,7 @@
 # FinVeritas Contabolsa
 
 [![CI](https://github.com/igorregoir-lgtm/finveritas-contabolsa/actions/workflows/ci.yml/badge.svg)](https://github.com/igorregoir-lgtm/finveritas-contabolsa/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-strict-blue)](frontend/)
 
@@ -47,8 +47,8 @@ A `check` executa: **lint** (`ruff`), **typecheck** (`mypy`), **security** (`ban
 
 | Métrica | Valor |
 |---|---|
-| Testes | 31 |
-| Cobertura | 92% |
+| Testes | 33 |
+| Cobertura | 93% |
 | Lint | ✅ pass |
 | Typecheck | ✅ pass |
 | Bandit | ✅ 0 issues |
