@@ -18,6 +18,7 @@ FinVeritas Contabolsa. Each ADR follows the Nygard format:
 | 0004 | FastAPI + React Layered Architecture | Accepted |
 | 0005 | PostgreSQL Persistence via SQLAlchemy | Accepted |
 | 0006 | Nox Cross-Platform Quality Gate | Accepted |
+| 0007 | CI pip dependency caching | Accepted |
 
 When a decision changes, mark the old ADR as deprecated or superseded and add a
 new ADR explaining the change.
