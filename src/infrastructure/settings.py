@@ -37,6 +37,12 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_allow_origins.split(",") if origin.strip()]
 
 
+_settings: Settings | None = None
+
+
 def get_settings() -> Settings:
     """Return a cached Settings instance."""
-    return Settings()
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings

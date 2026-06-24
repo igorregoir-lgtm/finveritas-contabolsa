@@ -4,6 +4,7 @@ Real endpoints using the domain service.
 """
 
 import logging
+import os
 import signal
 import time
 from contextlib import asynccontextmanager
@@ -44,7 +45,7 @@ def _get_in_memory_service() -> FinVeritasService:
 def get_service() -> FinVeritasService:
     settings = get_settings()
     db_url = str(settings.database_url)
-    if "sqlite" not in db_url.lower():
+    if os.getenv("DATABASE_URL") and "sqlite" not in db_url.lower():
         session = next(get_db_session())
         repo = SQLAlchemyEventRepository(session)
         return FinVeritasService(journal_repo=repo)
