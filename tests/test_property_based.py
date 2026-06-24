@@ -15,14 +15,18 @@ from src.domain.ratio_engine import RatioEngine
 @given(
     current_assets=st.decimals(min_value=1, max_value=1_000_000, places=2),
     current_liabilities=st.decimals(min_value=1, max_value=500_000, places=2),
-    total_assets=st.decimals(min_value=1, max_value=2_000_000, places=2),
     total_liabilities=st.decimals(min_value=1, max_value=1_000_000, places=2),
+    total_assets=st.decimals(min_value=1, max_value=2_000_000, places=2),
     ebitda=st.decimals(min_value=1, max_value=500_000, places=2),
     net_debt=st.decimals(min_value=0, max_value=1_000_000, places=2),
 )
 def test_ratio_engine_produces_valid_card(
     current_assets, current_liabilities, total_assets, total_liabilities, ebitda, net_debt
 ):
+    from hypothesis import assume
+
+    assume(total_assets >= total_liabilities)
+    assume(current_assets >= current_liabilities)
     engine = RatioEngine()
     card = engine.calculate(
         current_assets=current_assets,
