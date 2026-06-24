@@ -119,6 +119,29 @@ def test_stress_test():
     assert "stressed_metrics" in data
 
 
+def test_eliminations():
+    client.post("/consolidation/load-group")
+    client.post("/consolidation/run")
+    r = client.get("/consolidation/eliminations")
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert isinstance(data, list)
+
+
+def test_explanations():
+    client.post("/consolidation/load-group")
+    client.post("/consolidation/run")
+    r = client.get("/consolidation/explanations")
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert isinstance(data, list)
+
+
+def test_what_if_invalid_multiplier():
+    r = client.post("/consolidation/what-if", json={"interco_loan_delta_m": 0, "ebitda_multiplier": 0.00001})
+    assert r.status_code == 422
+
+
 def test_covenant_trends():
     r = client.get("/consolidation/trends")
     assert r.status_code == 200, r.text
