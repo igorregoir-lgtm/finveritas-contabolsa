@@ -22,7 +22,10 @@ class Settings(BaseSettings):
         default="postgresql://finveritas:demo@localhost:5432/finveritas",
         description="PostgreSQL connection string. Accepts a valid postgres:// or postgresql:// URL.",
     )
-    api_host: str = Field(default="0.0.0.0", description="Host the API binds to.")
+    api_host: str = Field(
+        default="0.0.0.0",  # nosec B104: intentional container exposure
+        description="Host the API binds to.",
+    )
     api_port: int = Field(default=8000, ge=1, le=65535, description="Port the API binds to.")
     api_reload: bool = Field(default=False, description="Enable uvicorn auto-reload (dev only).")
     log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
