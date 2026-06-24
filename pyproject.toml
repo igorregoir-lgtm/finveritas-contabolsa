@@ -13,6 +13,7 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I"]
+per-file-ignores = {"tests/test_api_contract.py" = ["E402"]}
 
 [tool.ruff.format]
 quote-style = "double"

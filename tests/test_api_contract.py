@@ -17,7 +17,9 @@ from src.infrastructure import settings as settings_module
 settings_module._settings = None
 
 from fastapi.testclient import TestClient  # noqa: E402
-from hypothesis import given, settings as hypothesis_settings, strategies as st  # noqa: E402
+from hypothesis import given  # noqa: E402
+from hypothesis import settings as hypothesis_settings
+from hypothesis import strategies as st
 
 from src.api.main import app  # noqa: E402
 

@@ -176,7 +176,13 @@ def health(service: FinVeritasService = Depends(get_service)):
     }
 
 
-@app.post("/journal/entry", responses={400: {"description": "Business rule violation"}, 403: {"description": "Blocked by anti-fraud policy"}})
+@app.post(
+    "/journal/entry",
+    responses={
+        400: {"description": "Business rule violation"},
+        403: {"description": "Blocked by anti-fraud policy"},
+    },
+)
 def post_journal_entry(req: JournalEntryRequest, service: FinVeritasService = Depends(get_service)):
     try:
         lines = [
@@ -196,7 +202,13 @@ def post_journal_entry(req: JournalEntryRequest, service: FinVeritasService = De
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/fiscal/import", responses={400: {"description": "Business rule violation"}, 403: {"description": "Blocked by anti-fraud policy"}})
+@app.post(
+    "/fiscal/import",
+    responses={
+        400: {"description": "Business rule violation"},
+        403: {"description": "Blocked by anti-fraud policy"},
+    },
+)
 def import_fiscal(req: FiscalImportRequest, service: FinVeritasService = Depends(get_service)):
     try:
         pix_dict = req.pix.model_dump()
