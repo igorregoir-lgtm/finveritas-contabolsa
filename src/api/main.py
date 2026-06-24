@@ -11,8 +11,9 @@ from contextlib import asynccontextmanager
 from decimal import Decimal
 from typing import List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import BaseModel, Field, field_validator
 
 from ..application.finveritas_service import FinVeritasService
@@ -20,6 +21,26 @@ from ..domain.journal import JournalLine
 from ..infrastructure.database import get_db_session, init_db
 from ..infrastructure.event_repository import SQLAlchemyEventRepository
 from ..infrastructure.settings import Settings, get_settings
+
+
+REQUEST_COUNT = Counter(
+    "finveritas_api_requests_total",
+    "Total API requests",
+    ["method", "path", "status"],
+)
+REQUEST_LATENCY = Histogram(
+    "finveritas_api_request_duration_seconds",
+    "API request latency in seconds",
+    ["method", "path"],
+)
+JOURNAL_ENTRIES = Counter(
+    "finveritas_journal_entries_total",
+    "Total journal entries posted",
+)
+FISCAL_IMPORTS = Counter(
+    "finveritas_fiscal_imports_total",
+    "Total fiscal imports",
+)
 
 
 def _configure_logging(settings: Settings) -> None:
@@ -92,14 +113,19 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def log_and_measure(request: Request, call_next):
     start = time.perf_counter()
     response = await call_next(request)
-    elapsed_ms = (time.perf_counter() - start) * 1000
+    elapsed = time.perf_counter() - start
+    elapsed_ms = elapsed * 1000
+    path = request.url.path
+    status = str(response.status_code)
+    REQUEST_COUNT.labels(method=request.method, path=path, status=status).inc()
+    REQUEST_LATENCY.labels(method=request.method, path=path).observe(elapsed)
     logger.info(
         "%s %s - %s - %.2fms",
         request.method,
-        request.url.path,
+        path,
         response.status_code,
         elapsed_ms,
     )
@@ -176,6 +202,12 @@ def health(service: FinVeritasService = Depends(get_service)):
     }
 
 
+@app.get("/metrics")
+def metrics():
+    data = generate_latest()
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
+
+
 @app.post(
     "/journal/entry",
     responses={
@@ -195,6 +227,7 @@ def post_journal_entry(req: JournalEntryRequest, service: FinVeritasService = De
             for line in req.lines
         ]
         event = service.post_journal_entry(req.description, lines, actor=req.actor)
+        JOURNAL_ENTRIES.inc()
         return {"id": event.id, "hash": event.current_hash, "description": req.description}
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
@@ -212,7 +245,9 @@ def post_journal_entry(req: JournalEntryRequest, service: FinVeritasService = De
 def import_fiscal(req: FiscalImportRequest, service: FinVeritasService = Depends(get_service)):
     try:
         pix_dict = req.pix.model_dump()
-        return service.import_fiscal(pix_dict, req.nfe, actor=req.actor)
+        result = service.import_fiscal(pix_dict, req.nfe, actor=req.actor)
+        FISCAL_IMPORTS.inc()
+        return result
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:

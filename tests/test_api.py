@@ -21,6 +21,12 @@ def test_health():
     assert isinstance(data["journal"]["entry_count"], int)
 
 
+def test_metrics():
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "finveritas_api_requests_total" in response.text
+
+
 def test_journal_entry_and_solvency():
     entry = {
         "description": "Test double-entry",

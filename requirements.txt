@@ -11,6 +11,7 @@ pytest
 pytest-cov
 hypothesis
 httpx  # for testing API
+prometheus-client
 ruff
 mypy
 pre-commit
