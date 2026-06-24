@@ -91,6 +91,14 @@ app = FastAPI(
     description="Sistema de contabilidade padrão B3 com anti-fraude ironclad",
     version=APP_VERSION,
     lifespan=lifespan,
+    openapi_tags=[
+        {"name": "Health", "description": "Liveness and readiness probes"},
+        {"name": "Journal", "description": "Double-entry bookkeeping with immutable hash chain"},
+        {"name": "Fiscal", "description": "Fiscal document import and fraud detection"},
+        {"name": "Solvency", "description": "Credit score and ratio analysis"},
+        {"name": "Consolidation", "description": "Group consolidation, covenants, and stress tests"},
+        {"name": "Observability", "description": "Prometheus metrics and operational endpoints"},
+    ],
 )
 
 
@@ -187,7 +195,7 @@ class StressRequest(BaseModel):
 
 
 # ── Core endpoints ────────────────────────────────────────────────────────────
-@app.get("/health")
+@app.get("/health", tags=["Health"], summary="Health check")
 def health(service: FinVeritasService = Depends(get_service)):
     journal = service.journal
     return {
@@ -201,7 +209,7 @@ def health(service: FinVeritasService = Depends(get_service)):
     }
 
 
-@app.get("/metrics")
+@app.get("/metrics", tags=["Observability"], summary="Prometheus metrics")
 def metrics():
     data = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)
@@ -209,6 +217,8 @@ def metrics():
 
 @app.post(
     "/journal/entry",
+    tags=["Journal"],
+    summary="Post a double-entry journal entry",
     responses={
         400: {"description": "Business rule violation"},
         403: {"description": "Blocked by anti-fraud policy"},
@@ -236,6 +246,8 @@ def post_journal_entry(req: JournalEntryRequest, service: FinVeritasService = De
 
 @app.post(
     "/fiscal/import",
+    tags=["Fiscal"],
+    summary="Import a fiscal document (PIX / NFe)",
     responses={
         400: {"description": "Business rule violation"},
         403: {"description": "Blocked by anti-fraud policy"},
@@ -253,7 +265,7 @@ def import_fiscal(req: FiscalImportRequest, service: FinVeritasService = Depends
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/solvency")
+@app.get("/solvency", tags=["Solvency"], summary="Calculate solvency card")
 def get_solvency(service: FinVeritasService = Depends(get_service)):
     card = service.calculate_solvency()
     return {
@@ -267,7 +279,12 @@ def get_solvency(service: FinVeritasService = Depends(get_service)):
     }
 
 
-@app.post("/export", responses={400: {"description": "Business rule violation"}})
+@app.post(
+    "/export",
+    tags=["Solvency"],
+    responses={400: {"description": "Business rule violation"}},
+    summary="Export signed bank package",
+)
 def export_to_bank(service: FinVeritasService = Depends(get_service)):
     try:
         return service.export_to_bank()
@@ -275,7 +292,7 @@ def export_to_bank(service: FinVeritasService = Depends(get_service)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/fraud-log")
+@app.get("/fraud-log", tags=["Fiscal"], summary="List anti-fraud decisions")
 def get_fraud_log(service: FinVeritasService = Depends(get_service)):
     return [
         {
@@ -290,12 +307,12 @@ def get_fraud_log(service: FinVeritasService = Depends(get_service)):
 
 
 # ── Group Consolidation endpoints (main FinStatement Pro flow) ────────────────
-@app.post("/consolidation/load-group")
+@app.post("/consolidation/load-group", tags=["Consolidation"], summary="Load group demo data")
 def load_group(service: FinVeritasService = Depends(get_service)):
     return service.load_group_demo()
 
 
-@app.post("/consolidation/run", responses={400: {"description": "Business rule violation"}})
+@app.post("/consolidation/run", tags=["Consolidation"], responses={400: {"description": "Business rule violation"}}, summary="Run group consolidation")
 def run_consolidation(service: FinVeritasService = Depends(get_service)):
     try:
         return service.run_consolidation()
@@ -303,7 +320,7 @@ def run_consolidation(service: FinVeritasService = Depends(get_service)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/consolidation/covenants")
+@app.get("/consolidation/covenants", tags=["Consolidation"], summary="List covenants")
 def get_covenants(service: FinVeritasService = Depends(get_service)):
     covs = service.get_last_covenants()
     return [
@@ -319,7 +336,7 @@ def get_covenants(service: FinVeritasService = Depends(get_service)):
     ]
 
 
-@app.get("/consolidation/eliminations")
+@app.get("/consolidation/eliminations", tags=["Consolidation"], summary="List eliminations")
 def get_eliminations(service: FinVeritasService = Depends(get_service)):
     elims = service.get_last_elims()
     return [
@@ -333,7 +350,7 @@ def get_eliminations(service: FinVeritasService = Depends(get_service)):
     ]
 
 
-@app.get("/consolidation/explanations")
+@app.get("/consolidation/explanations", tags=["Consolidation"], summary="List consolidation explanations")
 def get_explanations(service: FinVeritasService = Depends(get_service)):
     return [
         {
@@ -347,7 +364,7 @@ def get_explanations(service: FinVeritasService = Depends(get_service)):
     ]
 
 
-@app.post("/consolidation/what-if", responses={400: {"description": "Business rule violation"}})
+@app.post("/consolidation/what-if", tags=["Consolidation"], responses={400: {"description": "Business rule violation"}}, summary="Run what-if scenario")
 def apply_what_if(req: WhatIfRequest, service: FinVeritasService = Depends(get_service)):
     if req.ebitda_multiplier < 0.0001:
         raise HTTPException(status_code=422, detail="ebitda_multiplier must be at least 0.0001")
@@ -357,22 +374,22 @@ def apply_what_if(req: WhatIfRequest, service: FinVeritasService = Depends(get_s
     )
 
 
-@app.post("/consolidation/stress", responses={400: {"description": "Business rule violation"}})
+@app.post("/consolidation/stress", tags=["Consolidation"], responses={400: {"description": "Business rule violation"}}, summary="Run stress test")
 def stress_test(req: StressRequest, service: FinVeritasService = Depends(get_service)):
     return service.run_stress_test(req.stress_factor)
 
 
-@app.get("/consolidation/trends")
+@app.get("/consolidation/trends", tags=["Consolidation"], summary="Covenant trend analysis")
 def covenant_trends(service: FinVeritasService = Depends(get_service)):
     return service.get_covenant_trends()
 
 
-@app.get("/consolidation/anomalies")
+@app.get("/consolidation/anomalies", tags=["Consolidation"], summary="Detect AI anomalies")
 def detect_anomalies(service: FinVeritasService = Depends(get_service)):
     return service.run_ai_anomaly()
 
 
-@app.post("/consolidation/export-bank-pack", responses={400: {"description": "Business rule violation"}})
+@app.post("/consolidation/export-bank-pack", tags=["Consolidation"], responses={400: {"description": "Business rule violation"}}, summary="Export bank package")
 def export_bank_pack(service: FinVeritasService = Depends(get_service)):
     return service.export_for_bank()
 
