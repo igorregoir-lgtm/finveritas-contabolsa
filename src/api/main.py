@@ -13,7 +13,7 @@ from typing import List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from ..application.finveritas_service import FinVeritasService
 from ..domain.journal import JournalLine
@@ -107,32 +107,58 @@ async def log_requests(request: Request, call_next):
 
 
 # ── Pydantic request models ───────────────────────────────────────────────────
+class PixEntry(BaseModel):
+    model_config = {"strict": True, "extra": "forbid"}
+
+    chave: str
+    valor: float = Field(..., ge=0)
+
+
 class JournalLineIn(BaseModel):
+    model_config = {"strict": True}
+
     account: str
-    debit: float = 0
-    credit: float = 0
+    debit: float = Field(default=0, ge=0)
+    credit: float = Field(default=0, ge=0)
     description: str = ""
 
 
 class JournalEntryRequest(BaseModel):
+    model_config = {"strict": True, "extra": "forbid"}
+
     description: str
     lines: List[JournalLineIn]
     actor: str = "api-user"
 
+    @field_validator("lines")
+    @classmethod
+    def _balanced(cls, lines: List[JournalLineIn]) -> List[JournalLineIn]:
+        total_debit = sum(line.debit for line in lines)
+        total_credit = sum(line.credit for line in lines)
+        if total_debit != total_credit:
+            raise ValueError("Double entry must balance: total debits equal total credits")
+        return lines
+
 
 class FiscalImportRequest(BaseModel):
-    pix: dict
+    model_config = {"strict": True, "extra": "forbid"}
+
+    pix: PixEntry
     nfe: Optional[dict] = None
     actor: str = "api-user"
 
 
 class WhatIfRequest(BaseModel):
+    model_config = {"strict": True, "extra": "forbid"}
+
     interco_loan_delta_m: float = 0.0
-    ebitda_multiplier: float = 1.0
+    ebitda_multiplier: float = Field(default=1.0, gt=0, le=10)
 
 
 class StressRequest(BaseModel):
-    stress_factor: float = 0.2
+    model_config = {"strict": True, "extra": "forbid"}
+
+    stress_factor: float = Field(default=0.2, ge=0, le=1)
 
 
 # ── Core endpoints ────────────────────────────────────────────────────────────
@@ -150,7 +176,7 @@ def health(service: FinVeritasService = Depends(get_service)):
     }
 
 
-@app.post("/journal/entry")
+@app.post("/journal/entry", responses={400: {"description": "Business rule violation"}, 403: {"description": "Blocked by anti-fraud policy"}})
 def post_journal_entry(req: JournalEntryRequest, service: FinVeritasService = Depends(get_service)):
     try:
         lines = [
@@ -170,10 +196,11 @@ def post_journal_entry(req: JournalEntryRequest, service: FinVeritasService = De
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/fiscal/import")
+@app.post("/fiscal/import", responses={400: {"description": "Business rule violation"}, 403: {"description": "Blocked by anti-fraud policy"}})
 def import_fiscal(req: FiscalImportRequest, service: FinVeritasService = Depends(get_service)):
     try:
-        return service.import_fiscal(req.pix, req.nfe, actor=req.actor)
+        pix_dict = req.pix.model_dump()
+        return service.import_fiscal(pix_dict, req.nfe, actor=req.actor)
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
@@ -194,7 +221,7 @@ def get_solvency(service: FinVeritasService = Depends(get_service)):
     }
 
 
-@app.post("/export")
+@app.post("/export", responses={400: {"description": "Business rule violation"}})
 def export_to_bank(service: FinVeritasService = Depends(get_service)):
     try:
         return service.export_to_bank()
@@ -222,7 +249,7 @@ def load_group(service: FinVeritasService = Depends(get_service)):
     return service.load_group_demo()
 
 
-@app.post("/consolidation/run")
+@app.post("/consolidation/run", responses={400: {"description": "Business rule violation"}})
 def run_consolidation(service: FinVeritasService = Depends(get_service)):
     try:
         return service.run_consolidation()
@@ -274,15 +301,17 @@ def get_explanations(service: FinVeritasService = Depends(get_service)):
     ]
 
 
-@app.post("/consolidation/what-if")
+@app.post("/consolidation/what-if", responses={400: {"description": "Business rule violation"}})
 def apply_what_if(req: WhatIfRequest, service: FinVeritasService = Depends(get_service)):
+    if req.ebitda_multiplier < 0.0001:
+        raise HTTPException(status_code=422, detail="ebitda_multiplier must be at least 0.0001")
     return service.apply_what_if(
         interco_loan_delta=Decimal(str(req.interco_loan_delta_m * 1_000_000)),
         ebitda_multiplier=Decimal(str(req.ebitda_multiplier)),
     )
 
 
-@app.post("/consolidation/stress")
+@app.post("/consolidation/stress", responses={400: {"description": "Business rule violation"}})
 def stress_test(req: StressRequest, service: FinVeritasService = Depends(get_service)):
     return service.run_stress_test(req.stress_factor)
 
@@ -297,7 +326,7 @@ def detect_anomalies(service: FinVeritasService = Depends(get_service)):
     return service.run_ai_anomaly()
 
 
-@app.post("/consolidation/export-bank-pack")
+@app.post("/consolidation/export-bank-pack", responses={400: {"description": "Business rule violation"}})
 def export_bank_pack(service: FinVeritasService = Depends(get_service)):
     return service.export_for_bank()
 
