@@ -41,8 +41,6 @@ def test_event_record_creation():
 
 
 def _reset_db_state():
-    import os
-
     from src.infrastructure import database, settings
 
     settings._settings = None

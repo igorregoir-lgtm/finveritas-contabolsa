@@ -2,8 +2,6 @@
 Tests for centralized settings via pydantic-settings.
 """
 
-import os
-
 import pytest
 
 from src.infrastructure.settings import Settings, get_settings
