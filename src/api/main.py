@@ -22,7 +22,6 @@ from ..infrastructure.database import get_db_session, init_db
 from ..infrastructure.event_repository import SQLAlchemyEventRepository
 from ..infrastructure.settings import Settings, get_settings
 
-
 REQUEST_COUNT = Counter(
     "finveritas_api_requests_total",
     "Total API requests",
