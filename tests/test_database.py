@@ -9,6 +9,9 @@ from src.infrastructure.database import Base, EventRecord, get_database_url, ini
 
 
 def test_database_url_default():
+    from src.infrastructure import settings as settings_module
+
+    settings_module._settings = None
     url = get_database_url()
     assert "postgresql://" in url
     assert "localhost" in url

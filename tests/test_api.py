@@ -48,9 +48,8 @@ def test_journal_entry_and_solvency():
 def test_fiscal_import():
     payload = {
         "pix": {
-            "amount": 500.0,
-            "counterparty": "Supplier A",
-            "description": "Payment",
+            "chave": "supplier-a@example.com",
+            "valor": 500.0,
         },
         "nfe": None,
         "actor": "pytest",
@@ -64,7 +63,7 @@ def test_fraud_log():
     client.post(
         "/fiscal/import",
         json={
-            "pix": {"amount": 200000.0, "counterparty": "X", "description": "Big"},
+            "pix": {"chave": "x@example.com", "valor": 200000.0},
             "nfe": None,
             "actor": "pytest",
         },

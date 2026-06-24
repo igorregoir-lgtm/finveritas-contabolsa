@@ -16,14 +16,18 @@ from src.infrastructure import settings as settings_module
 
 settings_module._settings = None
 
-from fastapi.testclient import TestClient
-from hypothesis import given, settings as hypothesis_settings, strategies as st
+from fastapi.testclient import TestClient  # noqa: E402
+from hypothesis import given, settings as hypothesis_settings, strategies as st  # noqa: E402
 
-from src.api.main import app
+from src.api.main import app  # noqa: E402
 
 client = TestClient(app)
 
 VALID_STATUSES = {200, 201, 400, 403, 422}
+
+
+def _amount_strategy():
+    return st.one_of(st.just(0), st.floats(min_value=0, max_value=1e6, allow_nan=False, allow_infinity=False))
 
 
 @hypothesis_settings(max_examples=20, deadline=None)
@@ -32,8 +36,8 @@ VALID_STATUSES = {200, 201, 400, 403, 422}
         st.fixed_dictionaries(
             {
                 "account": st.text(min_size=1, max_size=20),
-                "debit": st.one_of(st.just(0), st.floats(min_value=0, max_value=1e6, allow_nan=False, allow_infinity=False)),
-                "credit": st.one_of(st.just(0), st.floats(min_value=0, max_value=1e6, allow_nan=False, allow_infinity=False)),
+                "debit": _amount_strategy(),
+                "credit": _amount_strategy(),
                 "description": st.text(max_size=30),
             }
         ),
