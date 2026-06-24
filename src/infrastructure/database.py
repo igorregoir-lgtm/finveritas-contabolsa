@@ -3,11 +3,12 @@ PostgreSQL + SQLAlchemy setup for FinVeritas persistence.
 Stores AccountingEvent as JSON for simplicity (Event Sourcing style).
 """
 
-import os
 from datetime import datetime, timezone
 
 from sqlalchemy import JSON, Column, DateTime, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+
+from .settings import get_settings
 
 Base = declarative_base()
 
@@ -29,7 +30,7 @@ _SessionLocal = None
 
 
 def get_database_url() -> str:
-    return os.getenv("DATABASE_URL", "postgresql://finveritas:demo@localhost:5432/finveritas")
+    return str(get_settings().database_url)
 
 
 def init_db():

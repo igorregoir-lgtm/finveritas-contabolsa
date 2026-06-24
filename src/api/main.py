@@ -4,7 +4,6 @@ Real endpoints using the domain service.
 """
 
 import logging
-import os
 import signal
 import time
 from contextlib import asynccontextmanager
@@ -19,11 +18,16 @@ from ..application.finveritas_service import FinVeritasService
 from ..domain.journal import JournalLine
 from ..infrastructure.database import get_db_session, init_db
 from ..infrastructure.event_repository import SQLAlchemyEventRepository
+from ..infrastructure.settings import Settings, get_settings
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-)
+
+def _configure_logging(settings: Settings) -> None:
+    logging.basicConfig(
+        level=getattr(logging, settings.log_level.upper()),
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    )
+
+
 logger = logging.getLogger("finveritas.api")
 
 # ── Singleton in-memory service (avoids state loss between requests) ──────────
@@ -38,8 +42,9 @@ def _get_in_memory_service() -> FinVeritasService:
 
 
 def get_service() -> FinVeritasService:
-    db_url = os.getenv("DATABASE_URL")
-    if db_url:
+    settings = get_settings()
+    db_url = str(settings.database_url)
+    if "sqlite" not in db_url.lower():
         session = next(get_db_session())
         repo = SQLAlchemyEventRepository(session)
         return FinVeritasService(journal_repo=repo)
@@ -52,6 +57,8 @@ APP_VERSION = "1.0.0"
 # ── Lifespan (replaces deprecated @app.on_event) ─────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    settings = get_settings()
+    _configure_logging(settings)
     init_db()
     logger.info("FinVeritas API starting (version=%s)", APP_VERSION)
     yield
@@ -76,7 +83,7 @@ signal.signal(signal.SIGINT, _handle_signal)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production restrict
+    allow_origins=get_settings().cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
