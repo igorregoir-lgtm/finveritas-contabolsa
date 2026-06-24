@@ -40,9 +40,20 @@ def test_event_record_creation():
     engine.dispose()
 
 
+def _reset_db_state():
+    import os
+
+    from src.infrastructure import database, settings
+
+    settings._settings = None
+    database._SessionLocal = None
+    database._engine = None
+
+
 def test_init_db_with_sqlite():
     import os
 
+    _reset_db_state()
     os.environ["DATABASE_URL"] = "sqlite:///:memory:"
     init_db()
 
@@ -59,9 +70,8 @@ def test_get_db_session_with_sqlite():
 
     from src.infrastructure import database
 
+    _reset_db_state()
     os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-    database._SessionLocal = None
-    database._engine = None
 
     session = next(database.get_db_session())
     assert session is not None
